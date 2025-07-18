@@ -732,6 +732,26 @@ require('lazy').setup({
           end,
         },
       }
+
+      require('lspconfig').solargraph.setup {
+        cmd = { '/users/subbums/.rbenv/shims/solargraph', 'stdio' },
+
+        capabilities = capabilities,
+        settings = {
+          solargraph = {
+            autoformat = false,
+            completion = true,
+            diagnostics = true,
+            folding = true,
+            references = true,
+            symbols = true,
+            useBundler = true,
+          },
+        },
+        -- root directory detection. solargraph often needs gemfile or .git
+        root_dir = require('lspconfig.util').root_pattern('gemfile', '.git', 'rakefile'),
+        filetypes = { 'ruby', 'eruby' },
+      }
     end,
   },
 
@@ -755,16 +775,25 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { c = true, cpp = true, ruby = true }
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
           return {
-            timeout_ms = 500,
+            timeout_ms = 2000,
             lsp_format = 'fallback',
           }
         end
       end,
+
+      formatters = {
+        rubocop = {
+          command = '/Users/subbums/.rbenv/shims/rubocop',
+          args = { '--auto-correct', '--stdin', '${FILENAME}', '--format', 'files', '--safe' },
+          exit_codes = { 0, 1 },
+          require_cwd = true,
+        },
+      },
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
@@ -778,7 +807,7 @@ require('lazy').setup({
         html = { 'prettier' },
         json = { 'prettier' },
         markdown = { 'prettier' },
-        -- ruby = { 'rubocop' },
+        ruby = { 'rubocop' },
       },
     },
   },
